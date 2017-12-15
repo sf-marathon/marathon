@@ -5,11 +5,18 @@ import (
 	"errors"
 	"github.com/go-kit/kit/endpoint"
 	"time"
+	svc "marathon/cargo-assistant/service"
 )
 
 var (
 	ERROR_TYPE_ASSERTION = errors.New("type assertion error!")
 )
+
+
+type GetGroupRequest struct {
+	Id string `json:"id"`
+}
+
 
 type GetStartRequest struct {
 	Id string `json:"uid"`
@@ -30,6 +37,7 @@ type CargoInfo struct {
 }
 
 
+
 type CommonResponse struct {
 	RequestId    string      `json:"requestId"`
 	Success      bool        `json:"success"`
@@ -41,28 +49,25 @@ type CommonResponse struct {
 	Obj          interface{} `json:"obj"`
 }
 
-func MakeStartEndpoint(s IOrderService) endpoint.Endpoint {
+
+func MakeGetGroupEndpoint(s svc.IGroupService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		if _, ok := request.(GetStartRequest); ok {
-			cargoinfo:=CargoInfo{
-				Name:"sdf",
-				WeightRequire :"最低1.2kg",
-				MinAmount:15,
-				BasePrice:2.3,
-				BaseWeight:3.4,
-				PictureUrl:"www.baidu.com",
-				Percentage:80,
-				Lack:32,
-				Joined:12,
-				Deadline:"2017-12-21",
-				Duration:"",
-				UseRequire:"使用要求：发的发生地方反复的",
+		if req, ok := request.(GetGroupRequest); ok {
+			route, err := s.GetGroup(ctx, req.Id)
+			if err != nil {
+				return CommonResponse{
+					Success:      false,
+					Date:         time.Now().Format("2006-01-02 15:04:05"),
+					ErrorCode:    "",
+					ErrorMessage: err.Error(),
+					Version:      "v1",
+				}, err
 			}
 			return CommonResponse{
 				Success: true,
 				Date:    time.Now().Format("2006-01-02 15:04:05"),
 				Version: "v1",
-				Obj:     cargoinfo,
+				Obj:     route,
 			}, nil
 		} else {
 			return CommonResponse{
@@ -75,6 +80,8 @@ func MakeStartEndpoint(s IOrderService) endpoint.Endpoint {
 		}
 	}
 }
+
+
 
 //func MakeAddOrderEndpoint(s IOrderService) endpoint.Endpoint {
 //	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
@@ -105,3 +112,4 @@ func MakeStartEndpoint(s IOrderService) endpoint.Endpoint {
 //		}
 //	}
 //}
+

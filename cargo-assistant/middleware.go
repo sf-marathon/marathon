@@ -4,27 +4,29 @@ import (
 	"context"
 	_ "github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/log"
+	svc "marathon/cargo-assistant/service"
 )
 
 type LoggingMiddleware struct {
-	next   IOrderService
+	next   svc.IGroupService
 	logger log.Logger
 }
 
-func NewLoggingMiddleware(logger log.Logger, s IOrderService) *LoggingMiddleware {
+func NewLoggingMiddleware(logger log.Logger, s svc.IGroupService) *LoggingMiddleware {
 	return &LoggingMiddleware{
 		next:   s,
 		logger: logger,
 	}
 }
 
-func (l *LoggingMiddleware) Order(ctx context.Context, r *Order) error {
+func (l *LoggingMiddleware) Group(ctx context.Context, id string) error {
 	//TODO log
-	l.logger.Log("order",r)
-	return l.next.Order(ctx, r)
+	l.logger.Log("Group",id)
+	return l.next.Group(ctx, id)
 }
 
-func (l *LoggingMiddleware) GetOrder(ctx context.Context, id string) (*Order, error) {
+func (l *LoggingMiddleware) GetGroup(ctx context.Context, id string) (*svc.GroupInfo, error) {
 	//TODO log
-	return l.next.GetOrder(ctx, id)
+	l.logger.Log("GetGroup",id)
+	return l.next.GetGroup(ctx, id)
 }

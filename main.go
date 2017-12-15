@@ -7,35 +7,42 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	order "marathon/cargo-assistant"
+	dao "marathon/cargo-assistant/dao"
+	svc "marathon/cargo-assistant/service"
 	"syscall"
+	ca "marathon/cargo-assistant"
 )
 
 func main() {
 	var (
-		mysqlUrl      = flag.String("mysqlUrl", "localhost", "")
+		mysqlUrl      = flag.String("mysqlUrl", "10.2.4.113", "")
 		mysqlPort     = flag.String("mysqlPort", "3306", "")
 		mysqlUsername = flag.String("mysqlUsername", "root", "")
-		mysqlPassword = flag.String("mysqlPassword", "123456", "")
+		mysqlPassword = flag.String("mysqlPassword", "sfai", "")
 		mysqlDBName   = flag.String("mysqlDBName", "marathon", "")
-		httpAddr      = flag.String("addr", ":8088", "The address of listen and serve")
+		httpAddr      = flag.String("addr", ":8081", "The address of listen and serve")
 	)
 	flag.Parse()
 	var logger kitlog.Logger
 	logger = kitlog.NewJSONLogger(os.Stderr)
-	var orderDao order.IOrderDao
-	var orderService order.IOrderService
+	var groupDao dao.IGroupDao
+	var proMktBaseDao dao.IProMarketBaseDao
+	var groupService svc.IGroupService
 	errs := make(chan error)
 	var err error
 	//init DB
-	order.NewMysqlManager(*mysqlUrl, *mysqlPort, *mysqlDBName, *mysqlUsername, *mysqlPassword,logger)
-	//orderDao, err = order.NewOrderDao(logger)
+
+	ca.NewMysqlManager(*mysqlUrl, *mysqlPort, *mysqlDBName, *mysqlUsername, *mysqlPassword,logger)
+	groupDao, err = dao.NewGroupDao(logger)
 	if err != nil {
 		errs <- err
 	}
-	orderService = order.NewOrderService(orderDao)
-	orderService=order.NewLoggingMiddleware(logger,orderService)
-	httpHandler := order.MakeHttpHandler(orderService, logger)
+	proMktBaseDao, err = dao.NewProMarketBaseDao(logger)
+	if err != nil {
+		errs <- err
+	}
+	groupService = svc.NewGroupService(groupDao, proMktBaseDao)
+	httpHandler := ca.MakeHttpHandler(groupService, logger)
 	go func() {
 		c := make(chan os.Signal)
 		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)

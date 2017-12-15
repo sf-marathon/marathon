@@ -4,33 +4,34 @@ import (
 	"github.com/go-kit/kit/metrics"
 	"time"
 	"context"
+	svc "marathon/cargo-assistant/service"
 )
 
 type instrumentingService struct {
 	requestCount   metrics.Counter
 	requestLatency metrics.Histogram
-	IOrderService
+	svc.IGroupService
 }
 
-func NewInstrumentingService(counter metrics.Counter, latency metrics.Histogram, s IOrderService) IOrderService {
+func NewInstrumentingService(counter metrics.Counter, latency metrics.Histogram, s svc.IGroupService) svc.IGroupService {
 	return &instrumentingService{
 		requestCount:   counter,
 		requestLatency: latency,
-		IOrderService:  s,
+		IGroupService:  s,
 	}
 }
 
-func (s *instrumentingService) Order(ctx context.Context,r *Order) (error) {
+func (s *instrumentingService) Group(ctx context.Context,id string) (error) {
 	defer func(begin time.Time) {
-		s.requestCount.With("method", "Order").Add(1)
-		s.requestLatency.With("method", "Order").Observe(time.Since(begin).Seconds())
+		s.requestCount.With("method", "Group").Add(1)
+		s.requestLatency.With("method", "Group").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return s.IOrderService.Order(ctx,r)
+	return s.IGroupService.Group(ctx,id)
 }
-func (s *instrumentingService) GetOrder(ctx context.Context, id string) (*Order, error) {
+func (s *instrumentingService) GetGroup(ctx context.Context, id string) (*svc.GroupInfo, error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "GetOrder").Add(1)
 		s.requestLatency.With("method", "GetOrder").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return s.IOrderService.GetOrder(ctx,id)
+	return s.IGroupService.GetGroup(ctx,id)
 }
