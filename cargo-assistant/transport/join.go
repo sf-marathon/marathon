@@ -28,15 +28,15 @@ func MakeJoinHttpHandler(s svc.IJoinService,router *mux.Router, logger log.Logge
 	}
 	//todo: prometheus
 
-	joinEndpoint := ca.MakeGetJoinEndpoint(s)
-	joinEndpoint = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Nanosecond), 1))(joinEndpoint)
-	joinEndpoint = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(joinEndpoint)
-	getJoinEndpoint := ca.MakeJoinEndpoint(s)
+	getJoinEndpoint := ca.MakeGetJoinEndpoint(s)
 	getJoinEndpoint = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Nanosecond), 1))(getJoinEndpoint)
 	getJoinEndpoint = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(getJoinEndpoint)
+	joinEndpoint := ca.MakeJoinEndpoint(s)
+	joinEndpoint = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Nanosecond), 1))(joinEndpoint)
+	joinEndpoint = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(joinEndpoint)
 
 	router.Methods("GET").
-		Path("/join").
+		Path("/join/{group_id}").
 		Handler(kithttp.NewServer(
 			getJoinEndpoint,
 			decodeGetJoinRequest,

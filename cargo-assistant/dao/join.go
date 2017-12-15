@@ -42,13 +42,14 @@ func NewJoinDao(log kitlog.Logger) (*JoinDao, error) {
 
 func (m *JoinDao) Insert(join *Join) error {
 	o := orm.NewOrm()
-	var joined *Join
+	var joins []*Join
 	//check if the user is already in this group
-	err := o.QueryTable(TABLE_NAME_JOIN).One(joined, COLUMN_JOIN_GROUP_ID, fmt.Sprintf("%d", join.GroupId), COLUMN_PHONE, join.Phone)
+	count,err := o.QueryTable(TABLE_NAME_JOIN).Filter( COLUMN_JOIN_GROUP_ID, fmt.Sprintf("%d", join.GroupId)).Filter(COLUMN_PHONE, join.Phone).All(&joins)
 	if err != nil {
 		m.log.Log(fmt.Sprintf("Cannot comfirm user record err: %v", err))
 		return err
-	} else if join != nil {
+	} else if count > 0 {
+		fmt.Println(join)
 		m.log.Log(fmt.Sprintf("User already joined"))
 		return fmt.Errorf("user already joined group %d", join.GroupId)
 	}
