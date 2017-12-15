@@ -22,3 +22,8 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{- define "prometheus.fullname" -}}
 {{- printf "%s-%s" .Release.Name "marathonserver" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
+
+
+{{- define "groupmanager.fullname" -}}
+{{- printf "%s-%s" .Release.Name "groupmanager" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}

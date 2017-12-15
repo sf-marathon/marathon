@@ -16,32 +16,16 @@ spec:
         release: {{ .Release.Name }}
     spec:
       containers:
-        - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - containerPort: {{ .Values.service.internalPort }}
-          livenessProbe:
-            httpGet:
-              path: /
-              port: {{ .Values.service.internalPort }}
-          readinessProbe:
-            httpGet:
-              path: /
-              port: {{ .Values.service.internalPort }}
-          volumeMounts:
-          - name: configuration
-            mountPath: /etc/prometheus
-        volumes:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        volumeMounts:
         - name: configuration
-          configMap:
-            name: {{ template "prometheus.fullname" . }}
-            items:
-              - key: prometheus.yml
-                path: prometheus.yml
-          resources:
-{{ toYaml .Values.resources | indent 12 }}
-    {{- if .Values.nodeSelector }}
-      nodeSelector:
-{{ toYaml .Values.nodeSelector | indent 8 }}
-    {{- end }}
+          mountPath: /etc/prometheus
+      volumes:
+      - name: configuration
+        configMap:
+          name: {{ template "prometheus.fullname" . }}
+          items:
+            - key: prometheus.yml
+              path: prometheus.yml

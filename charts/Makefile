@@ -1,7 +1,6 @@
 
 
 charts:
-	helm dependency build marathonserver
 	helm dependency build marathon
 
 clean:

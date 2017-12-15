@@ -19,34 +19,14 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          env:
-            - name: MYSQL_ROOT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "mysql.fullname" . }}
-                  key: mysql-root-password
-            - name: REDIS_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "redis.fullname" . }}
-                  key: redis-password
           args:
             - sh
             - -c
-            - marathonserver --mysql-host "{{ template "mysql.fullname" . }}" \
-              --mysql-port 3306 --mysql-root-password "$MYSQL_ROOT_PASSWORD" \
-              --redis-rawurl "redis://admin:$REDIS_PASSWORD@{{ template "redis.fullname" . }}:6379/1" \
-              --bind-port "{{ .Values.service.internalPort }}"
+            - cargo-assistant -mysqlUrl 10.2.4.113
+              -mysqlPort 3306 -mysqlUsername root -mysqlPassword sfai
+              -mysqlDBName marathon -addr ":{{ .Values.service.internalPort }}"
           ports:
             - containerPort: {{ .Values.service.internalPort }}
-          livenessProbe:
-            httpGet:
-              path: /
-              port: {{ .Values.service.internalPort }}
-          readinessProbe:
-            httpGet:
-              path: /
-              port: {{ .Values.service.internalPort }}
           resources:
 {{ toYaml .Values.resources | indent 12 }}
     {{- if .Values.nodeSelector }}
