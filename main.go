@@ -18,7 +18,7 @@ func main() {
 		mysqlUsername = flag.String("mysqlUsername", "root", "")
 		mysqlPassword = flag.String("mysqlPassword", "123456", "")
 		mysqlDBName   = flag.String("mysqlDBName", "marathon", "")
-		httpAddr      = flag.String("addr", ":8080", "The address of listen and serve")
+		httpAddr      = flag.String("addr", ":8088", "The address of listen and serve")
 	)
 	flag.Parse()
 	var logger kitlog.Logger
@@ -29,7 +29,7 @@ func main() {
 	var err error
 	//init DB
 	order.NewMysqlManager(*mysqlUrl, *mysqlPort, *mysqlDBName, *mysqlUsername, *mysqlPassword,logger)
-	orderDao, err = order.NewOrderDao(logger)
+	//orderDao, err = order.NewOrderDao(logger)
 	if err != nil {
 		errs <- err
 	}

@@ -37,12 +37,12 @@ func MakeHttpHandler(s IOrderService, logger log.Logger) http.Handler {
 			Help:      "Total duration of request in microseconds.",
 		}, fieldKeys),
 		s)
-	getOrderEndpoint := MakeGetOrderEndpoint(s)
+	getOrderEndpoint :=MakeStartEndpoint(s)
 	getOrderEndpoint = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 1))(getOrderEndpoint)
 	getOrderEndpoint = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(getOrderEndpoint)
-	addOrderEndpoint := MakeAddOrderEndpoint(s)
-	addOrderEndpoint = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 1))(addOrderEndpoint)
-	addOrderEndpoint = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(addOrderEndpoint)
+	//addOrderEndpoint := MakeAddOrderEndpoint(s)
+	//addOrderEndpoint = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 1))(addOrderEndpoint)
+	//addOrderEndpoint = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(addOrderEndpoint)
 	router.Methods("GET").
 		Path("/order/{id}").
 		Handler(kithttp.NewServer(
@@ -52,25 +52,25 @@ func MakeHttpHandler(s IOrderService, logger log.Logger) http.Handler {
 		options...,
 	))
 
-	router.Methods("POST").
-		Path("/order").
-		Handler(kithttp.NewServer(
-		addOrderEndpoint,
-		decodeAddOrderRequest,
-		encodeResponse,
-		options...,
-	))
+	//router.Methods("POST").
+	//	Path("/order").
+	//	Handler(kithttp.NewServer(
+	//	addOrderEndpoint,
+	//	decodeAddOrderRequest,
+	//	encodeResponse,
+	//	options...,
+	//))
 
 	return router
 }
 
-func decodeAddOrderRequest(ctx context.Context, r *http.Request) (request interface{}, err error) {
-	var req *Order
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, err
-	}
-	return req, nil
-}
+//func decodeAddOrderRequest(ctx context.Context, r *http.Request) (request interface{}, err error) {
+//	var req *Order
+//	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+//		return nil, err
+//	}
+//	return req, nil
+//}
 
 func decodeGetOrderRequest(_ context.Context, r *http.Request) (request interface{}, err error) {
 	vars := mux.Vars(r)
@@ -78,7 +78,7 @@ func decodeGetOrderRequest(_ context.Context, r *http.Request) (request interfac
 	if !ok {
 		return nil,errors.New("param err")
 	}
-	return GetOrderRequest{Id: id}, nil
+	return GetStartRequest{Id: id}, nil
 }
 
 func encodeResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
