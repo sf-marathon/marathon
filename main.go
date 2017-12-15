@@ -58,7 +58,7 @@ func main() {
 	}
 
 	groupService = svc.NewGroupService(groupDao, proMktBaseDao)
-	joinService = svc.NewJoinService(joinDao)
+	joinService = svc.NewJoinService(joinDao, groupDao, proMktBaseDao)
 	addService=svc.NewAddressService(addDao)
 	route:=mux.NewRouter()
 	route = route.PathPrefix("/ca").Subrouter()

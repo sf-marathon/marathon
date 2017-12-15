@@ -49,7 +49,7 @@ func (m *JoinDao) Insert(join *Join) error {
 		m.log.Log(fmt.Sprintf("Cannot comfirm user record err: %v", err))
 		return err
 	} else if count > 0 {
-		fmt.Println(join)
+		//fmt.Println(join)
 		m.log.Log(fmt.Sprintf("User already joined"))
 		return fmt.Errorf("user already joined group %d", join.GroupId)
 	}
@@ -62,7 +62,7 @@ func (m *JoinDao) Insert(join *Join) error {
 }
 
 func (m *JoinDao) Select(groupId string) ([]*Join, error) {
-	fmt.Println(groupId)
+	//fmt.Println(groupId)
 	var joins []*Join
 	o := orm.NewOrm()
 	_, err := o.QueryTable(TABLE_NAME_JOIN).Filter(COLUMN_JOIN_GROUP_ID, groupId).All(&joins)

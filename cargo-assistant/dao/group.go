@@ -39,13 +39,21 @@ func NewGroupDao(log kitlog.Logger) (*GroupDao, error) {
 func (m *GroupDao) Insert(proMktBase *ProMarketBase) error {
 	o := orm.NewOrm()
 	//TODO: find last group of this base
+	count,err := o.QueryTable(TABLE_NAME_GROUP).Count()
+	if err != nil {
+		m.log.Log(fmt.Sprintf("Cannot get total group info err: %v", err))
+		return err
+	}
+	now := time.Now()
+	count = count%100
+	suffix := fmt.Sprintf("%s%02d",now.Format("0102"),count)
 	group := Group{
 		MarketId:proMktBase.MarketId,
-		GroupName:proMktBase.MarketNameShow,//TODO: append time info
+		GroupName:proMktBase.MarketNameShow + suffix,//TODO: append time info
 		CreateTime:time.Now(),
-		DueTime:time.Now().Add(60*time.Second *time.Duration(proMktBase.GroupDuration)),
+		DueTime:now.Add(60*time.Second *time.Duration(proMktBase.GroupDuration)),
 		}
-	_, err := o.Insert(&group)
+	_, err = o.Insert(&group)
 	if err != nil {
 		m.log.Log(fmt.Sprintf("Cannot insert record err: %v", err))
 		return err
