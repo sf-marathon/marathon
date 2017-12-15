@@ -63,9 +63,12 @@ func main() {
 	}
 
 	groupService = svc.NewGroupService(groupDao, proMktBaseDao)
-	joinService = svc.NewJoinService(joinDao)
-	addService = svc.NewAddressService(addDao)
-	route := mux.NewRouter()
+	joinService = svc.NewJoinService(joinDao, groupDao, proMktBaseDao)
+	addService=svc.NewAddressService(addDao)
+
+	groupService = ca.NewLoggingMiddleware(logger, groupService)
+
+	route:=mux.NewRouter()
 	route = route.PathPrefix("/ca").Subrouter()
 	tp.MakeHttpHandler(groupService, route, logger)
 	tp.MakeJoinHttpHandler(joinService, route, logger)
