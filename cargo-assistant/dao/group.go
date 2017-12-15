@@ -43,7 +43,7 @@ func (m *GroupDao) Insert(proMktBase *ProMarketBase) error {
 		MarketId:proMktBase.MarketId,
 		GroupName:proMktBase.MarketNameShow,//TODO: append time info
 		CreateTime:time.Now(),
-		DueTime:time.Now().Add(time.Second *time.Duration( proMktBase.GroupDuration)),
+		DueTime:time.Now().Add(60*time.Second *time.Duration(proMktBase.GroupDuration)),
 		}
 	_, err := o.Insert(group)
 	if err != nil {
