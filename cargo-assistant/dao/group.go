@@ -45,7 +45,7 @@ func (m *GroupDao) Insert(proMktBase *ProMarketBase) error {
 		CreateTime:time.Now(),
 		DueTime:time.Now().Add(60*time.Second *time.Duration(proMktBase.GroupDuration)),
 		}
-	_, err := o.Insert(group)
+	_, err := o.Insert(&group)
 	if err != nil {
 		m.log.Log(fmt.Sprintf("Cannot insert record err: %v", err))
 		return err
