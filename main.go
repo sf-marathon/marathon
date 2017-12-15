@@ -31,8 +31,10 @@ func main() {
 	var groupDao dao.IGroupDao
 	var proMktBaseDao dao.IProMarketBaseDao
 	var joinDao dao.IJoinDao
+	var addDao dao.IAddressDao
 	var groupService svc.IGroupService
 	var joinService svc.IJoinService
+	var addService svc.IAddressService
 	errs := make(chan error)
 	var err error
 	//init DB
@@ -50,12 +52,19 @@ func main() {
 	if err != nil {
 		errs <- err
 	}
+	addDao,err=dao.NewAddressDao(logger)
+	if err != nil {
+		errs <- err
+	}
+
 	groupService = svc.NewGroupService(groupDao, proMktBaseDao)
 	joinService = svc.NewJoinService(joinDao)
+	addService=svc.NewAddressService(addDao)
 	route:=mux.NewRouter()
 	route = route.PathPrefix("/ca").Subrouter()
 	tp.MakeHttpHandler(groupService, route,logger)
     tp.MakeJoinHttpHandler(joinService,route ,logger)
+    tp.MakeAddressHttpHandler(addService,route,logger)
 	go func() {
 		c := make(chan os.Signal)
 		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)

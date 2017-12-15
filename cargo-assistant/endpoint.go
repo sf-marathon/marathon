@@ -169,33 +169,25 @@ func MakeGetJoinEndpoint(s svc.IJoinService) endpoint.Endpoint {
 		}
 	}
 }
-//func MakeAddOrderEndpoint(s IOrderService) endpoint.Endpoint {
-//	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-//		if req, ok := request.(*Order); ok {
-//			err := s.Order(ctx, req)
-//			if err != nil {
-//				return CommonResponse{
-//					Success:      false,
-//					Date:         time.Now().Format("2006-01-02 15:04:05"),
-//					ErrorCode:    "",
-//					ErrorMessage: err.Error(),
-//					Version:      "v1",
-//				}, err
-//			}
-//			return CommonResponse{
-//				Success: true,
-//				Date:    time.Now().Format("2006-01-02 15:04:05"),
-//				Version: "v1",
-//			}, nil
-//		} else {
-//			return CommonResponse{
-//				Success:      false,
-//				Date:         time.Now().Format("2006-01-02 15:04:05"),
-//				ErrorCode:    "",
-//				ErrorMessage: ERROR_TYPE_ASSERTION.Error(),
-//				Version:      "v1",
-//			}, ERROR_TYPE_ASSERTION
-//		}
-//	}
-//}
+
+func MakeAddressEndpoint(s svc.IAddressService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+			route, err :=s.GetAllAddress()
+			if err != nil {
+				return CommonResponse{
+					Success:      false,
+					Date:         time.Now().Format("2006-01-02 15:04:05"),
+					ErrorCode:    "",
+					ErrorMessage: err.Error(),
+					Version:      "v1",
+				}, err
+			}
+			return CommonResponse{
+				Success: true,
+				Date:    time.Now().Format("2006-01-02 15:04:05"),
+				Version: "v1",
+				Obj:     route,
+			}, nil
+	}
+}
 
