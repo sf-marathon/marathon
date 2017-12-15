@@ -7,18 +7,20 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	dao "marathon/cargo-assistant/dao"
+	"marathon/cargo-assistant/dao"
 	svc "marathon/cargo-assistant/service"
 	"syscall"
 	ca "marathon/cargo-assistant"
 	tp "marathon/cargo-assistant/transport"
 
 	"github.com/gorilla/mux"
+	"marathon/redispool"
 )
 
 func main() {
 	var (
 		mysqlUrl      = flag.String("mysqlUrl", "10.2.4.113", "")
+		RedisRawUrl   = flag.String("redisrawurl", "redis://:@10.2.4.113:6379/0", "redis raw url")
 		mysqlPort     = flag.String("mysqlPort", "3306", "")
 		mysqlUsername = flag.String("mysqlUsername", "root", "")
 		mysqlPassword = flag.String("mysqlPassword", "sfai", "")
@@ -37,9 +39,12 @@ func main() {
 	var addService svc.IAddressService
 	errs := make(chan error)
 	var err error
+
+	//init redispool
+	redisPool := redispool.NewRedispool(*RedisRawUrl)
 	//init DB
 
-	ca.NewMysqlManager(*mysqlUrl, *mysqlPort, *mysqlDBName, *mysqlUsername, *mysqlPassword,logger)
+	ca.NewMysqlManager(*mysqlUrl, *mysqlPort, *mysqlDBName, *mysqlUsername, *mysqlPassword, logger)
 	groupDao, err = dao.NewGroupDao(logger)
 	if err != nil {
 		errs <- err
@@ -48,11 +53,11 @@ func main() {
 	if err != nil {
 		errs <- err
 	}
-	joinDao,err = dao.NewJoinDao(logger)
+	joinDao, err = dao.NewJoinDao(logger)
 	if err != nil {
 		errs <- err
 	}
-	addDao,err=dao.NewAddressDao(logger)
+	addDao, err = dao.NewAddressDao(logger,redisPool)
 	if err != nil {
 		errs <- err
 	}
@@ -65,9 +70,9 @@ func main() {
 
 	route:=mux.NewRouter()
 	route = route.PathPrefix("/ca").Subrouter()
-	tp.MakeHttpHandler(groupService, route,logger)
-    tp.MakeJoinHttpHandler(joinService,route ,logger)
-    tp.MakeAddressHttpHandler(addService,route,logger)
+	tp.MakeHttpHandler(groupService, route, logger)
+	tp.MakeJoinHttpHandler(joinService, route, logger)
+	tp.MakeAddressHttpHandler(addService, route, logger)
 	go func() {
 		c := make(chan os.Signal)
 		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
