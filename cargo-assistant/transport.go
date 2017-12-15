@@ -38,17 +38,27 @@ func MakeHttpHandler(s svc.IGroupService, logger log.Logger) http.Handler {
 			Help:      "Total duration of request in microseconds.",
 		}, fieldKeys),
 		s)
-	getOrderEndpoint := MakeGetGroupEndpoint(s)
-	getOrderEndpoint = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Nanosecond), 1))(getOrderEndpoint)
-	getOrderEndpoint = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(getOrderEndpoint)
+
+	getGroupEndpoint := MakeGetGroupEndpoint(s)
+	getGroupEndpoint = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Nanosecond), 1))(getGroupEndpoint)
+	getGroupEndpoint = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(getGroupEndpoint)
+
+	//getOrderEndpoint :=MakeStartEndpoint(s)
+	//getOrderEndpoint = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 1))(getOrderEndpoint)
+	//getOrderEndpoint = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(getOrderEndpoint)
+	//addOrderEndpoint := MakeAddOrderEndpoint(s)
+	//addOrderEndpoint = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 1))(addOrderEndpoint)
+	//addOrderEndpoint = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(addOrderEndpoint)
+
 	router.Methods("GET").
 		Path("/group/{id}").
 		Handler(kithttp.NewServer(
-		getOrderEndpoint,
+		getGroupEndpoint,
 		decodeGetGroupRequest,
 		encodeResponse,
 		options...,
 	))
+
 
 /*	router.Methods("POST").
 		Path("/order").
@@ -59,8 +69,19 @@ func MakeHttpHandler(s svc.IGroupService, logger log.Logger) http.Handler {
 		options...,
 	))*/
 
+	//router.Methods("POST").
+	//	Path("/order").
+	//	Handler(kithttp.NewServer(
+	//	addOrderEndpoint,
+	//	decodeAddOrderRequest,
+	//	encodeResponse,
+	//	options...,
+	//))
+
+
 	return router
 }
+
 
 /*func decodeAddGroupRequest(ctx context.Context, r *http.Request) (request interface{}, err error) {
 	var req *dao.Group
@@ -70,6 +91,15 @@ func MakeHttpHandler(s svc.IGroupService, logger log.Logger) http.Handler {
 	return req, nil
 }*/
 
+//func decodeAddOrderRequest(ctx context.Context, r *http.Request) (request interface{}, err error) {
+//	var req *Order
+//	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+//		return nil, err
+//	}
+//	return req, nil
+//}
+
+
 func decodeGetGroupRequest(_ context.Context, r *http.Request) (request interface{}, err error) {
 	vars := mux.Vars(r)
 	id, ok := vars["id"]
@@ -77,6 +107,15 @@ func decodeGetGroupRequest(_ context.Context, r *http.Request) (request interfac
 		return nil,errors.New("param err")
 	}
 	return GetGroupRequest{Id: id}, nil
+}
+
+func decodeGetStartRequest(_ context.Context, r *http.Request) (request interface{}, err error) {
+	vars := mux.Vars(r)
+	id, ok := vars["id"]
+	if !ok {
+		return nil,errors.New("param err")
+	}
+	return GetStartRequest{Id: id}, nil
 }
 
 func encodeResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {

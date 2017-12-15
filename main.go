@@ -31,6 +31,7 @@ func main() {
 	errs := make(chan error)
 	var err error
 	//init DB
+
 	ca.NewMysqlManager(*mysqlUrl, *mysqlPort, *mysqlDBName, *mysqlUsername, *mysqlPassword,logger)
 	groupDao, err = dao.NewGroupDao(logger)
 	if err != nil {
