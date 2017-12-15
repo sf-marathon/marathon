@@ -9,7 +9,7 @@ import (
 	"time"
 
 	kitlog "github.com/go-kit/kit/log"
-	"fmt"
+	//"fmt"
 )
 
 func main() {
