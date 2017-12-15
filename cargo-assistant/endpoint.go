@@ -100,6 +100,7 @@ func MakeGetGroupEndpoint(s svc.IGroupService) endpoint.Endpoint {
 func MakeJoinEndpoint(s svc.IJoinService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		if req, ok := request.(JoinRequest); ok {
+			fmt.Println(req.GroupId)
 			join := &dao.Join{
 				GroupId:           req.GroupId,
 				Phone:             req.Phone,

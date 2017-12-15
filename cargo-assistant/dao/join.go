@@ -62,6 +62,7 @@ func (m *JoinDao) Insert(join *Join) error {
 }
 
 func (m *JoinDao) Select(groupId string) ([]*Join, error) {
+	fmt.Println(groupId)
 	var joins []*Join
 	o := orm.NewOrm()
 	_, err := o.QueryTable(TABLE_NAME_JOIN).Filter(COLUMN_JOIN_GROUP_ID, groupId).All(&joins)

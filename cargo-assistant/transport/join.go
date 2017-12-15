@@ -19,6 +19,7 @@ import (
 	"strconv"
 	"time"
 //	"marathon/cargo-assistant/dao"
+	"fmt"
 )
 
 func MakeJoinHttpHandler(s svc.IJoinService,router *mux.Router, logger log.Logger) http.Handler {
@@ -61,6 +62,7 @@ func decodeJoinRequest(_ context.Context, r *http.Request) (request interface{},
 	if err != nil {
 		return nil, errors.New("param json err")
 	}
+	fmt.Println(joinReq)
 	return joinReq, nil
 }
 
