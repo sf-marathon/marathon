@@ -21,9 +21,8 @@ import (
 //	"marathon/cargo-assistant/dao"
 )
 
-func MakeJoinHttpHandler(s svc.IJoinService, logger log.Logger) http.Handler {
-	router := mux.NewRouter()
-	router = router.PathPrefix("/ca").Subrouter()
+func MakeJoinHttpHandler(s svc.IJoinService,router *mux.Router, logger log.Logger) http.Handler {
+
 	options := []kithttp.ServerOption{
 		kithttp.ServerErrorLogger(logger),
 	}
