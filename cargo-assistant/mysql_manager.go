@@ -22,14 +22,6 @@ type MysqlManager struct {
 	Logger   kitlog.Logger
 }
 
-type User struct {
-	Id   int64  `json:"id" orm:"auto"`
-	Name string `json:"name" orm:"column(name)"`
-}
-
-func (u *User) TableName() string {
-	return "m_user"
-}
 
 func NewMysqlManager(host, port, database, username, password string, logger kitlog.Logger) *MysqlManager {
 	mysqlMgr := &MysqlManager{
@@ -56,11 +48,5 @@ func (mm *MysqlManager) init() {
 	orm.RegisterModel(new(dao.ProMarketBase))
 	orm.RegisterModel(new(dao.Join))
 	mm.Logger.Log("Database initialize complete", ds)
-	orm.RegisterModel(new(User))
 }
 
-func (mm *MysqlManager) AddUser(user *User) (int64, error) {
-	o := orm.NewOrm()
-	id, err := o.Insert(user)
-	return id, err
-}
