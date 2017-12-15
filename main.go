@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	order "preparation/order"
+	order "marathon/cargo-assistant"
 	"syscall"
 )
 
