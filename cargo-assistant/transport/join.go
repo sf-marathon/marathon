@@ -52,7 +52,14 @@ func MakeJoinHttpHandler(s svc.IJoinService,router *mux.Router, logger log.Logge
 			encodeResponse,
 			options...,
 		))
-
+	router.Methods("OPTIONS").
+		Path("/join").
+		Handler(kithttp.NewServer(
+		joinEndpoint,
+		decodeJoinRequest,
+		encodeResponse,
+		options...,
+	))
 	return router
 }
 
