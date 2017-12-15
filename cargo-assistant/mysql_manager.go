@@ -54,6 +54,7 @@ func (mm *MysqlManager) init() {
 	//register models
 	orm.RegisterModel(new(dao.Group))
 	orm.RegisterModel(new(dao.ProMarketBase))
+	orm.RegisterModel(new(dao.Join))
 	mm.Logger.Log("Database initialize complete", ds)
 	orm.RegisterModel(new(User))
 }

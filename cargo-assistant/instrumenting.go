@@ -28,10 +28,10 @@ func (s *instrumentingService) Group(ctx context.Context,id string) (error) {
 	}(time.Now())
 	return s.IGroupService.Group(ctx,id)
 }
-func (s *instrumentingService) GetGroup(ctx context.Context, id string) (*svc.GroupInfo, error) {
+func (s *instrumentingService) GetGroup(ctx context.Context) (*svc.GroupInfo, error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "GetOrder").Add(1)
 		s.requestLatency.With("method", "GetOrder").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return s.IGroupService.GetGroup(ctx,id)
+	return s.IGroupService.GetGroup(ctx)
 }

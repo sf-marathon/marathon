@@ -13,7 +13,7 @@ type GroupInfo struct {
 
 type IGroupService interface {
 	Group(ctx context.Context, proMktBaseId string) error
-	GetGroup(ctx context.Context, id string) (*GroupInfo, error)
+	GetGroup(ctx context.Context) (*GroupInfo, error)
 }
 
 type GroupService struct {
@@ -28,9 +28,9 @@ func NewGroupService(groupDao dao.IGroupDao, proMktBaseDao dao.IProMarketBaseDao
 	}
 }
 
-func (s *GroupService) GetGroup(ctx context.Context, id string) (*GroupInfo, error) {
-	group, errg := s.groupDao.Select(id)
-	pmb, errp := s.proMktBaseDao.Select(id)
+func (s *GroupService) GetGroup(ctx context.Context) (*GroupInfo, error) {
+	group, errg := s.groupDao.Select()
+	pmb, errp := s.proMktBaseDao.Select(group.MarketId)
 	var err error
 	if errg != nil || errp != nil {
 		err = fmt.Errorf("%v %v", errg, errp)
