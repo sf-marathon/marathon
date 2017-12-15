@@ -47,6 +47,7 @@ func (m *GroupDao) Insert(proMktBase *ProMarketBase) error {
 	now := time.Now()
 	count = count%100
 	suffix := fmt.Sprintf("%s%02d",now.Format("0102"),count)
+	fmt.Println(proMktBase.MarketNameShow + suffix)
 	group := Group{
 		MarketId:proMktBase.MarketId,
 		GroupName:proMktBase.MarketNameShow + suffix,//TODO: append time info
