@@ -11,6 +11,8 @@ import (
 	svc "marathon/cargo-assistant/service"
 	"syscall"
 	ca "marathon/cargo-assistant"
+	tp "marathon/cargo-assistant/transport"
+
 )
 
 func main() {
@@ -27,7 +29,9 @@ func main() {
 	logger = kitlog.NewJSONLogger(os.Stderr)
 	var groupDao dao.IGroupDao
 	var proMktBaseDao dao.IProMarketBaseDao
+	var joinDao dao.IJoinDao
 	var groupService svc.IGroupService
+	var joinService svc.IJoinService
 	errs := make(chan error)
 	var err error
 	//init DB
@@ -41,8 +45,14 @@ func main() {
 	if err != nil {
 		errs <- err
 	}
+	joinDao,err = dao.NewJoinDao(logger)
+	if err != nil {
+		errs <- err
+	}
 	groupService = svc.NewGroupService(groupDao, proMktBaseDao)
-	httpHandler := ca.MakeHttpHandler(groupService, logger)
+	joinService = svc.NewJoinService(joinDao)
+	httpHandler := tp.MakeHttpHandler(groupService, logger)
+	joinHttpHandler := tp.MakeJoinHttpHandler(joinService, logger)
 	go func() {
 		c := make(chan os.Signal)
 		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)

@@ -28,5 +28,5 @@ func (l *LoggingMiddleware) Group(ctx context.Context, id string) error {
 func (l *LoggingMiddleware) GetGroup(ctx context.Context, id string) (*svc.GroupInfo, error) {
 	//TODO log
 	l.logger.Log("GetGroup",id)
-	return l.next.GetGroup(ctx, id)
+	return l.next.GetGroup(ctx)
 }

@@ -1,4 +1,4 @@
-package cargo_assistant
+package transport
 
 import (
 	"context"
@@ -16,6 +16,7 @@ import (
 	"github.com/sony/gobreaker"
 	"errors"
 	svc "marathon/cargo-assistant/service"
+	ca "marathon/cargo-assistant"
 )
 
 func MakeHttpHandler(s svc.IGroupService, logger log.Logger) http.Handler {
@@ -25,7 +26,7 @@ func MakeHttpHandler(s svc.IGroupService, logger log.Logger) http.Handler {
 		kithttp.ServerErrorLogger(logger),
 	}
 	fieldKeys := []string{"method"}
-    s=NewInstrumentingService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+    s=ca.NewInstrumentingService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 		Namespace: "api",
 		Subsystem: "ca", //不能用中横线,引发panic,命名合法性reg:[a-zA-Z_:][a-zA-Z0-9_:]*
 		Name:      "request_count",
@@ -39,7 +40,7 @@ func MakeHttpHandler(s svc.IGroupService, logger log.Logger) http.Handler {
 		}, fieldKeys),
 		s)
 
-	getGroupEndpoint := MakeGetGroupEndpoint(s)
+	getGroupEndpoint := ca.MakeGetGroupEndpoint(s)
 	getGroupEndpoint = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Nanosecond), 1))(getGroupEndpoint)
 	getGroupEndpoint = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(getGroupEndpoint)
 
@@ -51,13 +52,15 @@ func MakeHttpHandler(s svc.IGroupService, logger log.Logger) http.Handler {
 	//addOrderEndpoint = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(addOrderEndpoint)
 
 	router.Methods("GET").
-		Path("/group/{id}").
+		Path("/group").
 		Handler(kithttp.NewServer(
 		getGroupEndpoint,
 		decodeGetGroupRequest,
 		encodeResponse,
 		options...,
 	))
+
+
 
 
 /*	router.Methods("POST").
@@ -101,12 +104,7 @@ func MakeHttpHandler(s svc.IGroupService, logger log.Logger) http.Handler {
 
 
 func decodeGetGroupRequest(_ context.Context, r *http.Request) (request interface{}, err error) {
-	vars := mux.Vars(r)
-	id, ok := vars["id"]
-	if !ok {
-		return nil,errors.New("param err")
-	}
-	return GetGroupRequest{Id: id}, nil
+	return ca.GetGroupRequest{}, nil
 }
 
 func decodeGetStartRequest(_ context.Context, r *http.Request) (request interface{}, err error) {
@@ -115,7 +113,7 @@ func decodeGetStartRequest(_ context.Context, r *http.Request) (request interfac
 	if !ok {
 		return nil,errors.New("param err")
 	}
-	return GetStartRequest{Id: id}, nil
+	return ca.GetStartRequest{Id: id}, nil
 }
 
 func encodeResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
