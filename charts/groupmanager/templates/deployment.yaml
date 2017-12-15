@@ -1,9 +1,9 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: {{ template "marathonserver.fullname" . }}
+  name: {{ template "groupmanager.fullname" . }}
   labels:
-    app: {{ template "marathonserver.name" . }}
+    app: {{ template "groupmanager.name" . }}
     chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
@@ -12,7 +12,7 @@ spec:
   template:
     metadata:
       labels:
-        app: {{ template "marathonserver.name" . }}
+        app: {{ template "groupmanager.name" . }}
         release: {{ .Release.Name }}
     spec:
       containers:
@@ -22,9 +22,9 @@ spec:
           args:
             - sh
             - -c
-            - cargo-assistant -mysqlUrl 10.2.4.113
+            - groupmanager -mysqlUrl 10.2.4.113
               -mysqlPort 3306 -mysqlUsername root -mysqlPassword sfai
-              -mysqlDBName marathon -addr ":{{ .Values.service.internalPort }}"
+              -mysqlDBName marathon
           ports:
             - containerPort: {{ .Values.service.internalPort }}
           resources:

@@ -3,6 +3,6 @@ dependencies:
   version: 0.1.0
   repository: "file://../marathonserver"
 
-- name: prometheus
+- name: groupmanager
   version: 0.1.0
-  repository: "file://../prometheus"
+  repository: "file://../groupmanager"
