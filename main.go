@@ -3,18 +3,22 @@ package main
 import (
 	"flag"
 	"fmt"
-	kitlog "github.com/go-kit/kit/log"
+	ca "marathon/cargo-assistant"
+	"marathon/cargo-assistant/dao"
+	svc "marathon/cargo-assistant/service"
+	tp "marathon/cargo-assistant/transport"
 	"net/http"
 	"os"
 	"os/signal"
-	"marathon/cargo-assistant/dao"
-	svc "marathon/cargo-assistant/service"
+	"strings"
 	"syscall"
-	ca "marathon/cargo-assistant"
-	tp "marathon/cargo-assistant/transport"
+
+	kitlog "github.com/go-kit/kit/log"
+	"github.com/golang/glog"
+
+	"marathon/redispool"
 
 	"github.com/gorilla/mux"
-	"marathon/redispool"
 )
 
 func main() {
@@ -57,18 +61,18 @@ func main() {
 	if err != nil {
 		errs <- err
 	}
-	addDao, err = dao.NewAddressDao(logger,redisPool)
+	addDao, err = dao.NewAddressDao(logger, redisPool)
 	if err != nil {
 		errs <- err
 	}
 
 	groupService = svc.NewGroupService(groupDao, proMktBaseDao)
 	joinService = svc.NewJoinService(joinDao, groupDao, proMktBaseDao)
-	addService=svc.NewAddressService(addDao)
+	addService = svc.NewAddressService(addDao)
 
 	groupService = ca.NewLoggingMiddleware(logger, groupService)
 
-	route:=mux.NewRouter()
+	route := mux.NewRouter()
 	route = route.PathPrefix("/ca").Subrouter()
 	tp.MakeHttpHandler(groupService, route, logger)
 	tp.MakeJoinHttpHandler(joinService, route, logger)
@@ -80,7 +84,31 @@ func main() {
 	}()
 	go func() {
 		logger.Log("transport", "HTTP", "addr", *httpAddr)
-		errs <- http.ListenAndServe(*httpAddr, route)
+		errs <- http.ListenAndServe(*httpAddr, allowCORS(route))
 	}()
 	logger.Log("exit:", <-errs)
+}
+
+// allowCORS allows Cross Origin Resoruce Sharing from any origin.
+// Don't do this without consideration in production systems.
+func allowCORS(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if origin := r.Header.Get("Origin"); origin != "" {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			if r.Method == "OPTIONS" && r.Header.Get("Access-Control-Request-Method") != "" {
+				preflightHandler(w, r)
+				return
+			}
+		}
+		h.ServeHTTP(w, r)
+	})
+}
+
+func preflightHandler(w http.ResponseWriter, r *http.Request) {
+	headers := []string{"Content-Type", "Accept"}
+	w.Header().Set("Access-Control-Allow-Headers", strings.Join(headers, ","))
+	methods := []string{"GET", "HEAD", "POST", "PUT", "DELETE"}
+	w.Header().Set("Access-Control-Allow-Methods", strings.Join(methods, ","))
+	glog.Infof("preflight request for %s", r.URL.Path)
+	return
 }
