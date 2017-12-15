@@ -5,6 +5,7 @@ import (
 	"github.com/astaxie/beego/orm"
 	kitlog "github.com/go-kit/kit/log"
 	_ "github.com/go-sql-driver/mysql"
+	"marathon/cargo-assistant/dao"
 )
 
 const (
@@ -50,7 +51,10 @@ func (mm *MysqlManager) init() {
 	if err != nil {
 		panic(err)
 	}
-	mm.Logger.Log("Database initialize complete")
+	//register models
+	orm.RegisterModel(new(dao.Group))
+	orm.RegisterModel(new(dao.ProMarketBase))
+	mm.Logger.Log("Database initialize complete", ds)
 	orm.RegisterModel(new(User))
 }
 

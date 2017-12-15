@@ -15,70 +15,68 @@ import (
 	"github.com/go-kit/kit/circuitbreaker"
 	"github.com/sony/gobreaker"
 	"errors"
+	svc "marathon/cargo-assistant/service"
 )
 
-func MakeHttpHandler(s IOrderService, logger log.Logger) http.Handler {
+func MakeHttpHandler(s svc.IGroupService, logger log.Logger) http.Handler {
 	router := mux.NewRouter()
-	router = router.PathPrefix("/order").Subrouter()
+	router = router.PathPrefix("/ca").Subrouter()
 	options := []kithttp.ServerOption{
 		kithttp.ServerErrorLogger(logger),
 	}
 	fieldKeys := []string{"method"}
     s=NewInstrumentingService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 		Namespace: "api",
-		Subsystem: "order", //不能用中横线,引发panic,命名合法性reg:[a-zA-Z_:][a-zA-Z0-9_:]*
+		Subsystem: "ca", //不能用中横线,引发panic,命名合法性reg:[a-zA-Z_:][a-zA-Z0-9_:]*
 		Name:      "request_count",
 		Help:      "Number of requests received.",
 	}, fieldKeys),
 		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
 			Namespace: "api",
-			Subsystem: "order",
+			Subsystem: "ca",
 			Name:      "request_latency_microseconds",
 			Help:      "Total duration of request in microseconds.",
 		}, fieldKeys),
 		s)
-	getOrderEndpoint := MakeGetOrderEndpoint(s)
-	getOrderEndpoint = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 1))(getOrderEndpoint)
+	getOrderEndpoint := MakeGetGroupEndpoint(s)
+	getOrderEndpoint = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Nanosecond), 1))(getOrderEndpoint)
 	getOrderEndpoint = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(getOrderEndpoint)
-	addOrderEndpoint := MakeAddOrderEndpoint(s)
-	addOrderEndpoint = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 1))(addOrderEndpoint)
-	addOrderEndpoint = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(addOrderEndpoint)
 	router.Methods("GET").
-		Path("/order/{id}").
+		Path("/group/{id}").
 		Handler(kithttp.NewServer(
 		getOrderEndpoint,
-		decodeGetOrderRequest,
+		decodeGetGroupRequest,
 		encodeResponse,
 		options...,
 	))
 
-	router.Methods("POST").
+/*	router.Methods("POST").
 		Path("/order").
 		Handler(kithttp.NewServer(
 		addOrderEndpoint,
 		decodeAddOrderRequest,
 		encodeResponse,
 		options...,
-	))
+	))*/
 
 	return router
 }
 
-func decodeAddOrderRequest(ctx context.Context, r *http.Request) (request interface{}, err error) {
-	var req *Order
+/*func decodeAddGroupRequest(ctx context.Context, r *http.Request) (request interface{}, err error) {
+	var req *dao.Group
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return nil, err
 	}
 	return req, nil
-}
+}*/
 
-func decodeGetOrderRequest(_ context.Context, r *http.Request) (request interface{}, err error) {
+func decodeGetGroupRequest(_ context.Context, r *http.Request) (request interface{}, err error) {
 	vars := mux.Vars(r)
 	id, ok := vars["id"]
 	if !ok {
 		return nil,errors.New("param err")
 	}
-	return GetOrderRequest{Id: id}, nil
+	return GetGroupRequest{Id: id}, nil
 }
 
 func encodeResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
