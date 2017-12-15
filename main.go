@@ -13,6 +13,7 @@ import (
 	ca "marathon/cargo-assistant"
 	tp "marathon/cargo-assistant/transport"
 
+	"github.com/gorilla/mux"
 )
 
 func main() {
@@ -51,8 +52,10 @@ func main() {
 	}
 	groupService = svc.NewGroupService(groupDao, proMktBaseDao)
 	joinService = svc.NewJoinService(joinDao)
-	httpHandler := tp.MakeHttpHandler(groupService, logger)
-	joinHttpHandler := tp.MakeJoinHttpHandler(joinService, logger)
+	route:=mux.NewRouter()
+	route = route.PathPrefix("/ca").Subrouter()
+	tp.MakeHttpHandler(groupService, route,logger)
+    tp.MakeJoinHttpHandler(joinService,route ,logger)
 	go func() {
 		c := make(chan os.Signal)
 		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
@@ -60,7 +63,7 @@ func main() {
 	}()
 	go func() {
 		logger.Log("transport", "HTTP", "addr", *httpAddr)
-		errs <- http.ListenAndServe(*httpAddr, httpHandler)
+		errs <- http.ListenAndServe(*httpAddr, route)
 	}()
 	logger.Log("exit:", <-errs)
 }

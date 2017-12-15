@@ -19,9 +19,8 @@ import (
 	ca "marathon/cargo-assistant"
 )
 
-func MakeHttpHandler(s svc.IGroupService, logger log.Logger) http.Handler {
-	router := mux.NewRouter()
-	router = router.PathPrefix("/ca").Subrouter()
+func MakeHttpHandler(s svc.IGroupService,router *mux.Router, logger log.Logger) http.Handler {
+
 	options := []kithttp.ServerOption{
 		kithttp.ServerErrorLogger(logger),
 	}
